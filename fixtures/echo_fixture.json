@@ -1,0 +1,52 @@
+{
+  "schema": "echo-bench-fixture/1",
+  "name": "标准 A 扫裁决夹具（5x3 位置）",
+  "sample_count": 1024,
+  "sample_interval_ns": 10.0,
+  "velocity_m_s": 5900.0,
+  "probe_delay_ns": 2000.0,
+  "min_resolvable_ns": 200.0,
+  "noise_window": [720, 800],
+  "defaults": {
+    "surface_sample": 300,
+    "surface": { "sample": 300, "fwhm_samples": 20, "amp": 0.80, "carrier_period_samples": 20, "phase": 0.0 },
+    "bottom": { "sample": 560, "fwhm_samples": 20, "amp": 0.55, "carrier_period_samples": 20, "phase": 0.0 }
+  },
+  "noise": { "rms": 0.012, "seed": 20260922 },
+  "grid": { "rows": 3, "cols": 5, "dx_mm": 2.0, "dy_mm": 2.0 },
+  "gates": [
+    { "id": "excitation", "label": "激发脉冲", "start": 0,   "end": 280, "role": "excitation" },
+    { "id": "surface",    "label": "表面回波", "start": 280, "end": 340, "role": "surface" },
+    { "id": "inspection", "label": "检测闸门", "start": 340, "end": 520, "role": "inspection" },
+    { "id": "bottom",     "label": "底面回波", "start": 520, "end": 620, "role": "bottom" }
+  ],
+  "positions": [
+    { "id": "p0",  "name": "(0,0)" },
+    { "id": "p1",  "name": "(1,0)" },
+    { "id": "p2",  "name": "(2,0)", "echoes": [
+      { "sample": 400, "fwhm_samples": 12, "amp": 0.34, "carrier_period_samples": 20, "phase": 0.0 },
+      { "sample": 418, "fwhm_samples": 12, "amp": 0.31, "carrier_period_samples": 20, "phase": 0.5 }
+    ]},
+    { "id": "p3",  "name": "(3,0)", "echoes": [
+      { "sample": 420, "fwhm_samples": 12, "amp": 0.28, "carrier_period_samples": 20, "phase": 0.0 }
+    ]},
+    { "id": "p4",  "name": "(4,0)" },
+    { "id": "p5",  "name": "(0,1)" },
+    { "id": "p6",  "name": "(1,1)", "echoes": [
+      { "sample": 430, "fwhm_samples": 12, "amp": 0.26, "carrier_period_samples": 20, "phase": 0.0 }
+    ]},
+    { "id": "p7",  "name": "(2,1)", "echoes": [
+      { "sample": 430, "fwhm_samples": 12, "amp": 0.24, "carrier_period_samples": 20, "phase": 0.0 },
+      { "sample": 470, "fwhm_samples": 12, "amp": 0.10, "carrier_period_samples": 20, "phase": 0.0 }
+    ]},
+    { "id": "p8",  "name": "(3,1)", "echoes": [
+      { "sample": 400, "fwhm_samples": 24, "amp": 1.70, "carrier_period_samples": 20, "phase": 0.0 }
+    ]},
+    { "id": "p9",  "name": "(4,1)" },
+    { "id": "p10", "name": "(0,2)" },
+    { "id": "p11", "name": "(1,2)" },
+    { "id": "p12", "name": "(2,2)" },
+    { "id": "p13", "name": "(3,2)" },
+    { "id": "p14", "name": "(4,2)" }
+  ]
+}

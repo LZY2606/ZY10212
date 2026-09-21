@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>超声回波裁决台</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>超声回波裁决台</h1>
+    <div class="toolbar">
+      <label>声速 <input id="cfg-velocity" type="number" step="10" /> m/s</label>
+      <label>探头延迟 <input id="cfg-delay" type="number" step="10" /> ns</label>
+      <label>阈值
+        <select id="cfg-mode">
+          <option value="amplitude">幅值</option>
+          <option value="snr">信噪比</option>
+        </select>
+      </label>
+      <label>幅值阈值 <input id="cfg-amp" type="number" step="0.01" min="0" max="1" /></label>
+      <label>SNR 阈值 <input id="cfg-snr" type="number" step="0.1" min="0" /></label>
+      <label>分辨率 <input id="cfg-res" type="number" step="10" /> ns</label>
+      <button id="btn-apply-config" class="primary">应用参数</button>
+      <span class="spacer"></span>
+      <button id="btn-export">导出运行记录</button>
+      <button id="btn-replay">重放记录</button>
+      <button id="btn-reimport">重新导入夹具</button>
+      <button id="btn-reset">清空并复位</button>
+      <input id="file-replay" type="file" accept="application/json" hidden />
+      <input id="file-import" type="file" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="side">
+      <section class="card">
+        <h2>二维扫描位置</h2>
+        <div id="grid" class="grid"></div>
+        <p class="hint">间距随夹具网格联动；点击选择位置。</p>
+      </section>
+      <section class="card">
+        <h2>闸门（左闭右开）</h2>
+        <div id="gates"></div>
+      </section>
+      <section class="card">
+        <h2>缺陷轨迹</h2>
+        <div id="tracks"></div>
+      </section>
+    </aside>
+
+    <section class="main">
+      <div id="position-banner" class="banner hidden"></div>
+      <div class="card">
+        <div class="card-head">
+          <h2 id="pos-title">A 扫波形</h2>
+          <div>
+            <button id="btn-surface-mode">在图上点击设置表面到达</button>
+            <span id="surface-mode-hint" class="hint"></span>
+          </div>
+        </div>
+        <canvas id="wave-canvas" width="1180" height="420"></canvas>
+        <div class="legend">
+          <span class="lg wave">时域波形</span>
+          <span class="lg env">包络</span>
+          <span class="lg thr">阈值</span>
+          <span class="lg sat">饱和</span>
+          <span class="lg surf">表面到达</span>
+          <span class="lg comp">复合候选</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>闸门内候选与裁决</h2>
+        <table id="candidates">
+          <thead>
+            <tr>
+              <th>键</th><th>闸门</th><th>峰(样本)</th><th>时间(ns)</th>
+              <th>声程(mm)</th><th>深度(mm)</th><th>幅值</th><th>SNR</th>
+              <th>标记</th><th>加入轨迹</th><th>裁决</th><th>备注</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+[package]
+name = "echo-bench"
+version = "0.1.0"
+edition = "2021"
+description = "超声回波裁决台 - ultrasonic A-scan adjudication workbench"
+
+[[bin]]
+name = "echo-bench"
+path = "src/main.rs"
+
+[dependencies]
+axum = { version = "0.8", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["fs", "trace"] }
+rusqlite = { version = "0.37", features = ["bundled", "blob"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+# Integration tests only use the binary's HTTP API; no extra deps needed.
