@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>超声回波裁决台</title>
+<style>
+  :root { --bg:#0f1420; --panel:#171e2e; --line:#2a3550; --fg:#e6ecf8; --muted:#8b97b3;
+          --wave:#7aa2ff; --env:#ffd166; --gate:#2dd4bf; --sat:#ff6b6b; --comp:#c084fc;
+          --ok:#34d399; --warn:#fbbf24; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:13px/1.45 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+         background:var(--bg); color:var(--fg); }
+  header { padding:10px 14px; border-bottom:1px solid var(--line); display:flex; gap:14px;
+           align-items:center; flex-wrap:wrap; }
+  h1 { font-size:16px; margin:0; }
+  .muted { color:var(--muted); }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px; }
+  #layout { display:grid; grid-template-columns:220px 1fr 330px; gap:10px; padding:10px; }
+  button,select,input { background:#0d1322; color:var(--fg); border:1px solid var(--line);
+          border-radius:6px; padding:4px 8px; font-size:12px; }
+  button { cursor:pointer; }
+  button:hover { border-color:#4f68a8; }
+  button.danger { border-color:#7f2b2b; }
+  .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:4px 0; }
+  .tag { display:inline-block; padding:1px 6px; border-radius:10px; font-size:11px; border:1px solid var(--line); }
+  .tag.single { color:var(--wave); } .tag.composite { color:var(--comp); }
+  .tag.saturated { color:var(--sat); } .tag.split { color:var(--ok); }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  td,th { border-bottom:1px solid var(--line); padding:4px 6px; text-align:left; }
+  th { color:var(--muted); font-weight:600; }
+  #map canvas { background:#0b101c; border-radius:6px; width:100%; display:block; }
+  #wave { width:100%; height:260px; background:#0b101c; border-radius:6px; display:block; cursor:crosshair; }
+  #depth { width:100%; height:40px; background:#0b101c; border-radius:6px; display:block; }
+  .cand { cursor:pointer; }
+  .cand.sel { background:#1e2a45; }
+  #banner { display:none; padding:8px 12px; margin:0 10px; border-radius:8px;
+            background:#3a1d1d; border:1px solid #7f2b2b; color:#ffb4b4; }
+  .err { color:#ff8080; min-height:16px; font-size:12px; }
+  details { margin-top:8px; } summary { cursor:pointer; color:var(--muted); }
+  #log { max-height:180px; overflow:auto; font-family:ui-monospace,monospace; font-size:11px; }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<header>
+  <h1>超声回波裁决台</h1>
+  <span class="muted" id="fixtureMeta"></span>
+  <div class="row" style="margin-left:auto">
+    <label>声速版本 <select id="calib"></select></label>
+    <label>阈值 <select id="thrMode"><option value="amp">幅值(counts)</option><option value="snr">信噪比</option></select></label>
+    <input id="thrValue" type="number" step="100" style="width:90px" />
+    <button id="applyThr">应用阈值</button>
+  </div>
+</header>
+<div id="banner"></div>
+<div id="layout">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div class="panel" id="map">
+      <div class="muted">二维扫描位置（点击切换）</div>
+      <canvas id="mapCanvas" width="200" height="140"></canvas>
+      <div class="muted" id="mapInfo"></div>
+    </div>
+    <div class="panel">
+      <div class="muted">闸门（左闭右开，样本）</div>
+      <div id="gateEditors"></div>
+      <div class="muted" style="margin-top:6px">直接编辑端点；边界上的峰只属于一侧闸门。</div>
+    </div>
+    <div class="panel">
+      <div class="muted">数据与重放</div>
+      <div class="row">
+        <button id="exportBtn">导出运行记录</button>
+        <button id="fixtureBtn">下载 fixture.json</button>
+      </div>
+      <div class="row"><label class="muted">导入记录(JSON)</label>
+        <input id="importFile" type="file" accept="application/json" /></div>
+      <div class="row"><button id="resetBtn" class="danger">清空数据库并重导入默认</button></div>
+      <div class="err" id="err"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="row"><strong id="scanTitle">扫描</strong><span class="muted" id="scanMeta"></span></div>
+    <div class="row">
+      <label>表面到达样本 <input id="surfaceInput" type="number" style="width:90px" /></label>
+      <button id="surfaceBtn">修正表面对齐</button>
+      <span class="muted">点击波形上的表面峰，或直接输入样本号</span>
+    </div>
+    <canvas id="wave" width="900" height="260"></canvas>
+    <canvas id="depth" width="900" height="40" style="margin-top:6px"></canvas>
+    <div class="row muted">
+      <span style="color:var(--wave)">━ 时域波形</span>
+      <span style="color:var(--env)">━ 包络</span>
+      <span style="color:var(--sat)">红=饱和平台</span>
+      <span style="color:var(--comp)">紫=不可分辨复合</span>
+      <span style="color:var(--gate)">▌闸门</span>
+    </div>
+    <details open><summary>操作记录（事件日志）</summary><div id="log"></div></details>
+  </div>
+  <div class="panel">
+    <div class="muted">本扫描候选回波</div>
+    <table id="candTable">
+      <thead><tr><th>候选</th><th>闸门</th><th class="num">样本区间</th><th class="num">峰</th>
+        <th class="num">幅值</th><th class="num">深度mm</th><th>裁决/操作</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="muted" style="margin-top:8px">
+      饱和样本只给幅值下界（显示 <b>≥</b>）；不可分辨近峰保留复合候选；宽回波可在波谷处拆分；
+      勾选多个相邻位置的散射候选后可组成缺陷轨迹。
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="trackBtn">将勾选候选组成轨迹</button><span class="muted" id="trackInfo"></span>
+    </div>
+  </div>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
